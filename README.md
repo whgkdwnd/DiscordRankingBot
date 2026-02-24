@@ -63,8 +63,6 @@ npm run dev
 
 | 명령어 | 설명 |
 |--------|------|
-| `/ping` | 봇 지연 시간 확인 |
-| `/랭킹` | 랭킹 종류 목록 및 조회 (추가 랭킹은 확장 예정) |
 | `/채팅랭킹` | 기간별 채팅 수 상위 랭킹 (기간·상위 인원·공개 여부 옵션) |
 | `/협곡` | 롤 협곡 모집 (인원 옵션, 비우면 5명) |
 | `/증바람` | 롤 증바람 모집 (인원 옵션, 비우면 5명) |
@@ -90,8 +88,6 @@ src/
   deploy-commands.js # 슬래시 명령 등록 스크립트
   commands/          # 슬래시 명령 정의
     loadCommands.js  # 명령 자동 로드
-    ping.js
-    ranking.js
     chatRanking.js   # 채팅 랭킹
     coop.js          # /협곡
     aram.js          # /증바람
@@ -101,7 +97,7 @@ src/
     lolQueue.js       # 롤 5인큐 (메시지 트리거 + 참가 버튼)
 ```
 
-새 랭킹을 넣을 때는 `src/commands/`에 새 명령 파일을 추가하거나, `ranking.js`에서 외부 API/DB를 연동해 구현하면 됩니다.
+새 랭킹을 넣을 때는 `src/commands/`에 새 명령 파일을 추가하거나, `chatRanking.js`에서 외부 API/DB를 연동해 구현하면 됩니다.
 
 ## 라이선스
 
