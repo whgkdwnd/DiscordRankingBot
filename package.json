@@ -1,0 +1,21 @@
+{
+  "name": "discord-ranking-bot",
+  "version": "1.0.0",
+  "description": "디스코드에서 각종 랭킹을 수집하고 알려주는 봇",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "deploy": "node src/deploy-commands.js",
+    "dev": "node --watch src/index.js"
+  },
+  "keywords": ["discord", "bot", "ranking"],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5"
+  }
+}
