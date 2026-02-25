@@ -11,7 +11,7 @@ function buildEmbed(participants, starterTag, limit, gameName) {
     participants.length === 0
       ? '—'
       : participants.map((id, i) => `${i + 1}. <@${id}>`).join('\n');
-  const title = `🎮 롤 ${gameName} ${limit}인큐`;
+  const title = `${gameName} ${limit}인큐`;
 
   return new EmbedBuilder()
     .setColor(0x1f8b4c)
@@ -47,23 +47,27 @@ function buildButtons(joinDisabled = false) {
  * 슬래시 명령용: 멘션·임베드·버튼 payload 생성
  * @param {string} starterTag
  * @param {number} limit - 모집 인원
- * @param {string} gameName - 게임 종류 (예: 협곡, 증바람)
+ * @param {string} gameName - 게임 종류 (예: 협곡, 증바람, 배그)
+ * @param {string|null} starterId - 명령을 친 사람(개설자), 넣으면 참가자에 자동 포함
  */
-export function createQueuePayload(starterTag, limit, gameName) {
-  const embed = buildEmbed([], starterTag, limit, gameName);
-  const row = buildButtons(false);
+export function createQueuePayload(starterTag, limit, gameName, starterId = null) {
+  const initialParticipants = starterId ? [starterId] : [];
+  const embed = buildEmbed(initialParticipants, starterTag, limit, gameName);
+  const joinDisabled = initialParticipants.length >= limit;
+  const row = buildButtons(joinDisabled);
   const payload = { embeds: [embed], components: [row] };
-  const roleId = gameName === '증바람' ? config.roleIdAram : config.roleIdCoop;
+  const roleId = gameName === '증바람' ? config.roleIdAram : gameName === '협곡' ? config.roleIdCoop : null;
   if (roleId) payload.content = `<@&${roleId}>`;
   return payload;
 }
 
 /**
  * 슬래시 명령용: 보낸 메시지 ID로 큐 등록 (버튼 클릭 시 사용)
+ * @param {string[]} initialParticipants - 개설자 등 초기 참가자 ID (명령을 친 사람 자동 참가용)
  */
-export function registerQueue(messageId, starterId, starterTag, limit, gameName) {
+export function registerQueue(messageId, starterId, starterTag, limit, gameName, initialParticipants = []) {
   queueState.set(messageId, {
-    participants: [],
+    participants: [...initialParticipants],
     starterId,
     starterTag,
     limit,
@@ -89,7 +93,8 @@ export async function handleMessage(message) {
     ? `<@&${config.roleIdCoop}>`
     : '';
 
-  const embed = buildEmbed([], message.author.tag, 5, '협곡');
+  const starterId = message.author.id;
+  const embed = buildEmbed([starterId], message.author.tag, 5, '협곡');
   const row = buildButtons(false);
 
   const payload = { embeds: [embed], components: [row] };
@@ -97,8 +102,8 @@ export async function handleMessage(message) {
 
   const sent = await message.reply(payload);
   queueState.set(sent.id, {
-    participants: [],
-    starterId: message.author.id,
+    participants: [starterId],
+    starterId,
     starterTag: message.author.tag,
     limit: 5,
     gameName: '협곡',
@@ -179,6 +184,20 @@ export async function handleButton(interaction) {
   const row = buildButtons(joinDisabled);
 
   await interaction.message.edit({ embeds: [embed], components: [row] }).catch(() => {});
+
+  if (joinDisabled && state.participants.length > 0) {
+    const title = `${gameName} ${limit}인큐`;
+    const list = state.participants.map((id, i) => `${i + 1}. <@${id}>`).join('\n');
+    const dmContent = `**${title}** 모집이 완료되었습니다!\n\n${list}`;
+    for (const userId of state.participants) {
+      try {
+        const user = await interaction.client.users.fetch(userId);
+        await user.send({ content: dmContent });
+      } catch (e) {
+        // DM 비활성화 등으로 실패해도 다른 멤버에게는 계속 전송
+      }
+    }
+  }
 
   return true;
 }

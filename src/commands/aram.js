@@ -18,9 +18,10 @@ export default {
   async execute(interaction) {
     const limitRaw = interaction.options.getInteger('players');
     const limit = typeof limitRaw === 'number' && limitRaw >= 2 && limitRaw <= 10 ? limitRaw : 5;
+    const starterId = interaction.user.id;
 
-    const payload = createQueuePayload(interaction.user.tag, limit, GAME_NAME);
+    const payload = createQueuePayload(interaction.user.tag, limit, GAME_NAME, starterId);
     const sent = await interaction.reply({ ...payload, fetchReply: true });
-    registerQueue(sent.id, interaction.user.id, interaction.user.tag, limit, GAME_NAME);
+    registerQueue(sent.id, interaction.user.id, interaction.user.tag, limit, GAME_NAME, [starterId]);
   },
 };
